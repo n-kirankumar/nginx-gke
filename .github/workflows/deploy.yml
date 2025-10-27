@@ -20,11 +20,11 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+          gcloud auth configure-docker us-west1-docker.pkg.dev --quiet
 
       - name: Build and Push Docker image
         run: |
-          IMAGE=${{ secrets.GCP_REPOSITORY }}:v${{ github.run_number }}
+          IMAGE="us-west1-docker.pkg.dev/test-teraform-vm/nginx-repo/nginx-gke:v${{ github.run_number }}"
           docker build -t $IMAGE .
           docker push $IMAGE
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
