@@ -1,0 +1,40 @@
+name: Deploy NGINX to GKE
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+          location: ${{ secrets.GKE_ZONE }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Build and Push Docker image
+        run: |
+          IMAGE="${{ secrets.GCP_REPOSITORY }}:v${{ github.run_number }}"
+          docker build -t $IMAGE .
+          gcloud auth configure-docker us-west1-docker.pkg.dev --quiet
+          docker push $IMAGE
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+      - name: Deploy to GKE
+        run: |
+          kubectl set image deployment/nginx-deployment nginx=$IMAGE
+          kubectl rollout status deployment/nginx-deployment
+
