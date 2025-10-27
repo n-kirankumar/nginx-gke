@@ -35,6 +35,7 @@ jobs:
 
       - name: Deploy to GKE
         run: |
-          kubectl set image deployment/nginx-deployment nginx=$IMAGE
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+          kubectl set image deployment/nginx-deployment nginx=$IMAGE || echo "Deployment created for the first time"
           kubectl rollout status deployment/nginx-deployment
-
